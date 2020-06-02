@@ -1,6 +1,7 @@
 # import library
 import  cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 # global function
 #---------------RESIZE IMAGE FUNCTION
@@ -24,45 +25,84 @@ def selectBigestRegion(mask):
             max_size = sizes[i]
 
     img2 = np.zeros(output.shape)
-    img2[output == max_label] = 255
-    cv2.imshow("Biggest component", img2)
+    img2[output == max_label] = 255    
     return img2 
 #---------------SELECT REGION BASE ON AREA
-def selectRegion(mask,minValue,maxValue) :
-    mask = mask.astype('uint8')
-    nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4)
-    sizes = stats[:, -1]
-    thisList=[]
-    for i in range(2, nb_components):
-            if sizes[i] > minValue and sizes[i] < maxValue:
-                thisList.append(i)
-    
-    img2 = np.zeros(output.shape)
-    img =np.zeros(output.shape)
-    for i in range(0,len(thisList)-1):       
-        img2[output == thisList[i]] = 255
+def selectRegion(mask,option,minValue,maxValue) :
+    if  option== "area":       
+        mask = mask.astype('uint8')
+        nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        sizes = stats[:, -1]
+        thisList=[]
+        for i in range(2, nb_components):
+                if sizes[i] > minValue and sizes[i] < maxValue:
+                    thisList.append(i)
+        
+        img2 = np.zeros(output.shape)
+        img =np.zeros(output.shape) 
+        for i in range(0,len(thisList)-1):       
+            img2[output == thisList[i]] = 255
+        
+        #cv2.imshow("Select Area Region :"+  str(minValue)+"=>"+str(maxValue), img2)
+    elif option=="width":
+        mask = mask.astype('uint8')
+        nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        sizes = stats[:, 2]
+        thisList=[]
+        for i in range(2, nb_components):
+                if sizes[i] > minValue and sizes[i] < maxValue:
+                    thisList.append(i)
+        
+        img2 = np.zeros(output.shape)
+        img =np.zeros(output.shape)
+        for i in range(0,len(thisList)-1):       
+            img2[output == thisList[i]] = 255
+        
+        #cv2.imshow("Select Area Region :"+  str(minValue)+"=>"+str(maxValue), img2)
+    elif option=="height":
+        mask = mask.astype('uint8')
+        nb_components, output, stats, centroids = cv2.connectedComponentsWithStats(mask, connectivity=4)
+        sizes = stats[:, 3]
+        thisList=[]
+        for i in range(2, nb_components):
+                if sizes[i] > minValue and sizes[i] < maxValue:
+                    thisList.append(i)
+        
+        img2 = np.zeros(output.shape)
+        img =np.zeros(output.shape)
+        for i in range(0,len(thisList)-1):       
+            img2[output == thisList[i]] = 255
+        
+        #cv2.imshow("Select Area Region :"+  str(minValue)+"=>"+str(maxValue), img2)
        
-    cv2.imshow("Select Area Region :"+  str(minValue)+"=>"+str(maxValue), img2)
     return img2 
-
-
+#------------------Hysteresis_threshold
+def hysteresis_threshold(img,lowValue,upperValue,MaxLength):
+    ret,normalThreshold =cv2.threshold(img,upperValue,255,cv2.THRESH_BINARY)
+    ret,lowThreshold =cv2.threshold(img,lowValue,255,cv2.THRESH_BINARY)
+    # subregion
+    
+  
 # --------------------------------------MAIN--------------------------------------
-
-img =cv2.imread('code.jpeg')
+img =cv2.imread('F:/Code_Python_ImageProcessing/code.jpeg')
 imgResize =resizeImage(img,20)
 # Gray
 imgGray =cv2.cvtColor(imgResize,cv2.COLOR_RGB2GRAY)
+# hysteris threshold
+hysteresis_threshold (imgGray,40,50,10)
+
+kernel =cv2.getStructuringElement(cv2.MORPH_RECT ,(4,5))
+
 ret,imgThreshold= cv2.threshold(imgGray,200,255,cv2.THRESH_BINARY)
 kernel=np.ones((10,10),np.uint8)
 imgThreshold =cv2.morphologyEx(imgThreshold,cv2.MORPH_CLOSE ,kernel)
 kernel=np.ones((5,5),np.uint8)
 imgThreshold =cv2.morphologyEx(imgThreshold,cv2.MORPH_OPEN ,kernel)
 # 
-minArea =10
-maxArea=10000
 connectivity=4
 output = cv2.connectedComponentsWithStats(imgThreshold, connectivity, cv2.CV_32S)
-            
+minArea =200
+maxArea=10000        
 for i in range(output[0]):
             if output[2][i][4] >= minArea and output[2][i][4] <= maxArea:
                 cv2.rectangle(imgResize, (output[2][i][0], output[2][i][1]), (
@@ -70,9 +110,26 @@ for i in range(output[0]):
 
 
 #selectBigestRegion(imgThreshold)
-selectRegion(imgThreshold,2,50)
+option_shape=["area","width","height"]
+method=option_shape[0]
+regionSelected=selectRegion(imgThreshold,method,300,400)
+regionBigest =selectBigestRegion(imgThreshold)
 
 #--------------- IMSHOW RESULT
-# cv2.imshow('detection', imgResize)
-cv2.imshow('Threshold',imgThreshold)
+
+#cv2.imshow('Threshold',imgThreshold)
+#cv2.imshow('Region selected '+str( option_shape[2]),regionSelected)
 cv2.waitKey(0)
+fig, axit =plt.subplots(1,3)
+axit[0].imshow(imgThreshold,cmap='gray')
+axit[0].set_title('image Threshold')
+
+axit[1].imshow(regionSelected,cmap='gray')
+axit[1].set_title("region Selected "+str(method))
+
+axit[2].imshow(regionBigest,cmap='gray')
+axit[2].set_title("region Biggest")
+
+
+fig.tight_layout()
+plt.show()
