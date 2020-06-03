@@ -1,2 +1,2 @@
 # Python_OpenCV_ImageProcessing
-# select regio flow area, width, height
+# select region flow area, width, height
