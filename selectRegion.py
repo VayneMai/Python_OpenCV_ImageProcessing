@@ -76,23 +76,14 @@ def selectRegion(mask,option,minValue,maxValue) :
         #cv2.imshow("Select Area Region :"+  str(minValue)+"=>"+str(maxValue), img2)
        
     return img2 
-#------------------Hysteresis_threshold
-def hysteresis_threshold(img,lowValue,upperValue,MaxLength):
-    ret,normalThreshold =cv2.threshold(img,upperValue,255,cv2.THRESH_BINARY)
-    ret,lowThreshold =cv2.threshold(img,lowValue,255,cv2.THRESH_BINARY)
-    # subregion
-    
+
+
   
 # --------------------------------------MAIN--------------------------------------
-img =cv2.imread('F:/Code_Python_ImageProcessing/code.jpeg')
+img =cv2.imread('C:/Users/manmu/Downloads/git_train/Python_OpenCV_ImageProcessing/code.jpeg')
 imgResize =resizeImage(img,20)
 # Gray
 imgGray =cv2.cvtColor(imgResize,cv2.COLOR_RGB2GRAY)
-# hysteris threshold
-hysteresis_threshold (imgGray,40,50,10)
-
-kernel =cv2.getStructuringElement(cv2.MORPH_RECT ,(4,5))
-
 ret,imgThreshold= cv2.threshold(imgGray,200,255,cv2.THRESH_BINARY)
 kernel=np.ones((10,10),np.uint8)
 imgThreshold =cv2.morphologyEx(imgThreshold,cv2.MORPH_CLOSE ,kernel)
